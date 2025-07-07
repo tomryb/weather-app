@@ -1,0 +1,39 @@
+.weather-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  max-width: 40rem;
+  margin: 2rem auto 0 auto;
+  animation: fade-in 0.5s ease-in-out;
+}
+
+.weather-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  margin-bottom: 1rem;
+}
+
+.weather-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #374151;
+  font-size: 1.125rem;
+}
+
+.weather-value {
+  font-weight: 500;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
