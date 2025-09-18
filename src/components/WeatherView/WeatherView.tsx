@@ -1,7 +1,12 @@
 import React from "react";
 import "./WeatherView.css";
+import type { WeatherData } from "../../store/weatherSlice";
 
-const WeatherView = ({ data }: { data: any }) => {
+interface WeatherViewProps {
+  data: WeatherData;
+}
+
+const WeatherView = ({ data }: WeatherViewProps) => {
   if (!data) return null;
 
   return (

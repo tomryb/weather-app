@@ -1,7 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
-const API_KEY = "91dd1bafc5cb40aaa80131548250707";
+import { fetchCurrentWeather, fetchManyCurrentWeather, WeatherResponse } from "../services/weatherApi";
 
 export interface WeatherData {
   location: {
@@ -28,10 +26,8 @@ export const fetchWeather = createAsyncThunk<WeatherData, string>(
   "weather/fetch",
   async (city: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(city)}&lang=pl`
-      );
-      return response.data as WeatherData;
+      const response: WeatherResponse = await fetchCurrentWeather(city);
+      return response as WeatherData;
     } catch (err) {
       return rejectWithValue("Nie udało się pobrać danych pogodowych.");
     }
@@ -41,14 +37,8 @@ export const fetchWeather = createAsyncThunk<WeatherData, string>(
 export const fetchComparisons = createAsyncThunk<WeatherData[], string[]>(
   "weather/compare",
   async (cities: string[]) => {
-    const responses = await Promise.all(
-      cities.map((city) =>
-        axios.get(
-          `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(city)}&lang=pl`
-        )
-      )
-    );
-    return responses.map((res) => res.data as WeatherData);
+    const responses = await fetchManyCurrentWeather(cities);
+    return responses as WeatherData[];
   }
 );
 

@@ -1,3 +1,4 @@
+require("dotenv").config();
 const path = require("path");
 const nodeExternals = require("webpack-node-externals");
 const webpack = require("webpack");
@@ -70,6 +71,11 @@ const serverConfig = {
       },
     ],
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      "process.env.'91dd1bafc5cb40aaa80131548250707'": JSON.stringify(API_KEY),
+    }),
+  ],
 };
 
 module.exports = [clientConfig, serverConfig];

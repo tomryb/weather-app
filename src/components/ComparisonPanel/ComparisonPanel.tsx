@@ -1,16 +1,9 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useMemo } from "react";
 import './ComparisonPanel.css';
-
-const CITIES = ["Warszawa", "Kraków", "Wrocław"];
-const API_KEY = "91dd1bafc5cb40aaa80131548250707";
-
-const normalizeCity = (city: string) =>
-  city
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ł/g, "l")
-    .replace(/Ł/g, "L");
+import { useAppDispatch, useAppSelector } from "../../store/store";
+import { fetchComparisons } from "../../store/weatherSlice";
+import { CITIES, normalizeCity } from "../../utils/cities";
+import type { WeatherData } from "../../store/weatherSlice";
 
 interface ComparisonResult {
   name: string;
@@ -31,47 +24,34 @@ interface ComparisonPanelProps {
 }
 
 const ComparisonPanel = ({ current }: ComparisonPanelProps) => {
-  const [comparisons, setComparisons] = useState<ComparisonResult[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const comparisonsData = useAppSelector((state) => state.weather.comparisons);
+  const error = useAppSelector((state) => state.weather.error);
 
   useEffect(() => {
     if (!current) return;
 
-    const { temp_c, humidity } = current.current;
     const currentCityName = current.location.name.toLowerCase();
+    const citiesToFetch = CITIES.filter(
+      (city) => city.toLowerCase() !== currentCityName
+    )
+      .slice(0, 3)
+      .map((c) => normalizeCity(c));
 
-    const fetchComparisonData = async () => {
-      try {
-        const citiesToFetch = CITIES.filter(
-          (city) => city.toLowerCase() !== currentCityName
-        ).slice(0, 3);
+    if (citiesToFetch.length > 0) {
+      dispatch(fetchComparisons(citiesToFetch));
+    }
+  }, [current?.location.name, dispatch]);
 
-        const responses = await Promise.all(
-          citiesToFetch.map(async (city) => {
-            const res = await axios.get(
-              `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(
-                normalizeCity(city)
-              )}&lang=en`
-            );
-
-            return {
-              name: city,
-              tempDiff: res.data.current.temp_c - temp_c,
-              humidityDiff: res.data.current.humidity - humidity,
-            };
-          })
-        );
-
-        setComparisons(responses);
-        setError(null);
-      } catch (err) {
-        console.error("❌ Error fetching comparison data:", err);
-        setError("Failed to fetch comparison data.");
-      }
-    };
-
-    fetchComparisonData();
-  }, [current]);
+  const comparisons: ComparisonResult[] = useMemo(() => {
+    if (!current) return [];
+    const { temp_c, humidity } = current.current;
+    return comparisonsData.map((data: WeatherData) => ({
+      name: data.location.name,
+      tempDiff: data.current.temp_c - temp_c,
+      humidityDiff: data.current.humidity - humidity,
+    }));
+  }, [comparisonsData, current]);
 
   return (
     <div className="panel-container">
